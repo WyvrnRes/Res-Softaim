@@ -6,3 +6,5 @@
 ![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/e91a943d-b5c6-4194-bef7-f0c45c27fe9f)
 
 Demo Video: https://youtu.be/yk4MmO7PUzM
+
+Use Rootkit's Setup guide for initial Pre-Requisites
