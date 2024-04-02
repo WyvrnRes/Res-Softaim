@@ -54,6 +54,9 @@ class App(customtkinter.CTk):
             triggerBot_value = triggerBot_switch.get() == 1
             showTriggerBot_value = showTriggerBot_switch.get() == 1
             showFOVCircle_value = showFOVCircle_switch.get() == 1
+            showTracers_value = showTracers_switch.get() == 1
+            showBoxes_value = showBoxes_switch.get() == 1
+            dynamic_triggerbot_value = dynamic_triggerbot_switch.get() == 1
 
             # save to config.py
             with open('config.py', 'w') as config_file:
@@ -82,12 +85,15 @@ class App(customtkinter.CTk):
                 config_file.write(f"selectedModel = '{selected_model}'\n") 
                 config_file.write(f"BodyPart = '{body_part_selector.get()}'\n")
                 config_file.write(f"RandomBodyPart = {random_body_part_value}\n")
+                config_file.write(f"showTracers = {showTracers_value}\n")
+                config_file.write(f"showBoxes = {showBoxes_value}\n")
                 config_file.write(f"triggerBot = {triggerBot_value}\n")
                 config_file.write(f"triggerbot_actdistance = {triggerbot_actdistance_entry.get()}\n")
                 config_file.write(f"showTriggerBotRadius = {showTriggerBot_value}\n")
                 config_file.write(f"showFOVCircle = {showFOVCircle_value}\n")
                 config_file.write(f"overlayColor = '{overlayColor_entry.get()}'\n")
-            app.after(500, save_settings)
+                config_file.write(f"dynamicTriggerbot = {dynamic_triggerbot_value}\n")
+                print("Saved Settings")
 
         def create_setting_widget(parent, label, row, column, widget_type=customtkinter.CTkEntry, **options):
             customtkinter.CTkLabel(parent, text=label).grid(row=row, column=column, pady=(10, 0), padx=(10, 0), sticky="w")
@@ -102,7 +108,7 @@ class App(customtkinter.CTk):
 
         app.title("Res Softaim Menu")
         app.iconbitmap("icon.ico")
-        app.geometry("700x440")
+        app.geometry("700x500")
         app.resizable(False, False)
 
         # set grid layout 1x2
@@ -117,6 +123,7 @@ class App(customtkinter.CTk):
         app.gameaim_image = customtkinter.CTkImage(dark_image=Image.open(os.path.join(image_path, "gameaim.png")), size=(20, 20))
         app.advanced_image = customtkinter.CTkImage(dark_image=Image.open(os.path.join(image_path, "advanced.png")), size=(20, 20))
         app.hardware_image = customtkinter.CTkImage(dark_image=Image.open(os.path.join(image_path, "hardware.png")), size=(20, 20))
+        app.overlay_image = customtkinter.CTkImage(dark_image=Image.open(os.path.join(image_path, "overlay.png")), size=(20, 20))
 
         # create navigation frame
         app.navigation_frame = customtkinter.CTkFrame(app, corner_radius=0)
@@ -124,11 +131,13 @@ class App(customtkinter.CTk):
         app.navigation_frame.grid_rowconfigure(8, weight=1)
 
         app.navigation_frame_label = customtkinter.CTkLabel(app.navigation_frame, text = "", image=app.logo_image)
-        app.navigation_frame_label.grid(row=6, column=0, padx=20, pady=20)
-        app.run_button = create_setting_widget(app.navigation_frame, "", 7, 0, widget_type=customtkinter.CTkButton, text="Run Softaim", command=run)
-        app.run_button.grid(row=7, column=0)
-        app.display = create_setting_widget(app.navigation_frame, "", 8, 0, widget_type=customtkinter.CTkLabel, text=str(displayResolution[0]) + " x " + str(displayResolution[1]))
-        app.display.grid(row=8, column=0)
+        app.navigation_frame_label.grid(row=7, column=0, padx=20, pady=20)
+        app.run_button = create_setting_widget(app.navigation_frame, "", 8, 0, widget_type=customtkinter.CTkButton, text="Run Softaim", command=run)
+        app.run_button.grid(row=8, column=0)
+        app.save_button = create_setting_widget(app.navigation_frame, "", 9, 0, widget_type=customtkinter.CTkButton, text="Save Settings", command=save_settings)
+        app.save_button.grid(row=9, column=0)
+        app.display = create_setting_widget(app.navigation_frame, "", 10, 0, widget_type=customtkinter.CTkLabel, text=str(displayResolution[0]) + " x " + str(displayResolution[1]))
+        app.display.grid(row=10, column=0)
 
         app.screen_button = customtkinter.CTkButton(app.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Screen",
                                                    fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
@@ -154,6 +163,11 @@ class App(customtkinter.CTk):
                                                       fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                       image=app.hardware_image, anchor="w", command=app.frame_5_button_event)
         app.frame_5_button.grid(row=5, column=0, sticky="ew")
+
+        app.frame_6_button = customtkinter.CTkButton(app.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Overlay",
+                                                      fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
+                                                      image=app.overlay_image, anchor="w", command=app.frame_6_button_event)
+        app.frame_6_button.grid(row=6, column=0, sticky="ew")
 
 
 
@@ -188,10 +202,9 @@ class App(customtkinter.CTk):
         random_body_part_switch = create_setting_widget(app.third_frame, "Randomized Body Part", 2, 2, widget_type=customtkinter.CTkSwitch, text="")
         triggerBot_switch = create_setting_widget(app.third_frame, "Trigger Bot", 3, 2, widget_type=customtkinter.CTkSwitch, text="")
         triggerbot_actdistance_entry = create_setting_widget(app.third_frame, "Activation Distance", 4, 2, widget_type=customtkinter.CTkEntry)
-        realtime_overlay_switch = create_setting_widget(app.third_frame, "Realtime Overlay", 5, 2, widget_type=customtkinter.CTkSwitch, text="")
-        showTriggerBot_switch = create_setting_widget(app.third_frame, "Trigger Bot FOV Overlay", 6, 2, widget_type=customtkinter.CTkSwitch, text="")
-        showFOVCircle_switch = create_setting_widget(app.third_frame, "FOV Circle Overlay", 7, 2, widget_type=customtkinter.CTkSwitch, text="")
-        center_of_screen_switch = create_setting_widget(app.third_frame, "Center of Screen Selection", 8, 2, widget_type=customtkinter.CTkSwitch, text="")
+        dynamic_triggerbot_switch = create_setting_widget(app.third_frame, "Dynamic Trigger Bot", 5, 2, widget_type=customtkinter.CTkSwitch, text="")
+        center_of_screen_switch = create_setting_widget(app.third_frame, "Center of Screen Selection", 6, 2, widget_type=customtkinter.CTkSwitch, text="")
+        
 
         # create advanced frame
         app.fourth_frame = customtkinter.CTkFrame(app, corner_radius=0, fg_color="transparent")
@@ -202,7 +215,6 @@ class App(customtkinter.CTk):
         aa_quit_key_entry = create_setting_widget(app.fourth_frame, "Softaim Quit Key", 3, 0)
         aa_pause_key_entry = create_setting_widget(app.fourth_frame, "Softaim Pause Key", 4, 0)
         aa_trigger_bot_key_entry = create_setting_widget(app.fourth_frame, "Trigger Bot Key", 5, 0)
-        overlayColor_entry = create_setting_widget(app.fourth_frame, "Choose Overlay Color (HEX Format)", 6, 0, widget_type=customtkinter.CTkEntry)
         engine_files = get_engine_files()
         model_selector = create_model_selector(app.fourth_frame, 7, 0, engine_files, config.selectedModel)
 
@@ -213,6 +225,17 @@ class App(customtkinter.CTk):
         arduino_leonardo_switch = create_setting_widget(app.fifth_frame, "Use Arduino Leonardo", 1, 0, widget_type=customtkinter.CTkSwitch, text="")
         arduino_port_entry = create_setting_widget(app.fifth_frame, "Arduino Port", 2, 0)
         onnx_choice_entry = create_setting_widget(app.fifth_frame, "ONNX Choice (1-CPU, 2-AMD, 3-NVIDIA)", 3, 0)
+
+        # create overlay frame
+        app.sixth_frame = customtkinter.CTkFrame(app, corner_radius=0, fg_color="transparent")
+        app.sixth_frame.grid_columnconfigure(0, weight=1)
+
+        overlayColor_entry = create_setting_widget(app.sixth_frame, "Choose Overlay Color (HEX Format)", 1, 0, widget_type=customtkinter.CTkEntry)
+        realtime_overlay_switch = create_setting_widget(app.sixth_frame, "Realtime Overlay", 2, 0, widget_type=customtkinter.CTkSwitch, text="")
+        showFOVCircle_switch = create_setting_widget(app.sixth_frame, "Fov Circle", 3, 0, widget_type=customtkinter.CTkSwitch, text="")
+        showTriggerBot_switch = create_setting_widget(app.sixth_frame, "Trigger Bot Fov Circle", 4, 0, widget_type=customtkinter.CTkSwitch, text="")
+        showTracers_switch = create_setting_widget(app.sixth_frame, "Tracers", 5, 0, widget_type=customtkinter.CTkSwitch, text="")
+        showBoxes_switch = create_setting_widget(app.sixth_frame, "Boxes", 6, 0, widget_type=customtkinter.CTkSwitch, text="")
 
         set_initial_values(screen_shot_height_entry, config.screenShotHeight)
         set_initial_values(screen_shot_width_entry, config.screenShotWidth)
@@ -244,6 +267,9 @@ class App(customtkinter.CTk):
         set_switch(realtime_overlay_switch, config.realtimeOverlay)
         set_switch(showTriggerBot_switch, config.showTriggerBotRadius)
         set_switch(showFOVCircle_switch, config.showFOVCircle)
+        set_switch(showTracers_switch, config.showTracers)
+        set_switch(showBoxes_switch, config.showBoxes)
+        set_switch(dynamic_triggerbot_switch, config.dynamicTriggerbot)
 
         save_settings()
 
@@ -257,6 +283,7 @@ class App(customtkinter.CTk):
         app.frame_3_button.configure(fg_color=("gray75", "gray25") if name == "frame_3" else "transparent")
         app.frame_4_button.configure(fg_color=("gray75", "gray25") if name == "frame_4" else "transparent")
         app.frame_5_button.configure(fg_color=("gray75", "gray25") if name == "frame_5" else "transparent")
+        app.frame_6_button.configure(fg_color=("gray75", "gray25") if name == "frame_6" else "transparent")
 
         # show selected frame
         if name == "screen":
@@ -284,6 +311,11 @@ class App(customtkinter.CTk):
         else:
             app.fifth_frame.grid_forget()
 
+        if name == "frame_6":
+            app.sixth_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            app.sixth_frame.grid_forget()
+
 
     def screen_button_event(app):
         app.select_frame_by_name("screen")
@@ -299,6 +331,9 @@ class App(customtkinter.CTk):
 
     def frame_5_button_event(app):
         app.select_frame_by_name("frame_5")
+
+    def frame_6_button_event(app):
+        app.select_frame_by_name("frame_6")
 
 if __name__ == "__main__":
     app = App()

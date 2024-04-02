@@ -8,7 +8,7 @@ import pandas as pd
 from utils.general import (cv2, non_max_suppression, xyxy2xywh)
 from models.common import DetectMultiBackend
 import cupy as cp
-from config import overlayColor, showFOVCircle, screenShotHeight, screenShotWidth, triggerbot_actdistance, aaMovementAmp, aaTriggerBotKey, aaMovementAmpHipfire, realtimeOverlay, jitterValue, aaPauseKey, useMask, maskHeight, maskWidth, aaQuitKey, confidence, cpsDisplay, visuals, centerOfScreen, fovCircleSize, ArduinoLeonardo, arduinoPort, BodyPart, RandomBodyPart
+from config import dynamicTriggerbot, showTracers, showBoxes, overlayColor, showFOVCircle, screenShotHeight, screenShotWidth, triggerbot_actdistance, aaMovementAmp, aaTriggerBotKey, aaMovementAmpHipfire, realtimeOverlay, jitterValue, aaPauseKey, useMask, maskHeight, maskWidth, aaQuitKey, confidence, cpsDisplay, visuals, centerOfScreen, fovCircleSize, ArduinoLeonardo, arduinoPort, BodyPart, RandomBodyPart
 import gameSelection
 import serial
 import sys
@@ -113,7 +113,6 @@ def main():
         pm.overlay_init()
         innerRadius = fovCircleSize
         outerRadius = innerRadius + 2
-        outerTriggerbotRadius = triggerbot_actdistance + 1
         width, height = pm.get_screen_width(), pm.get_screen_height()
         centerX, centerY = width // 2, height // 2
         overlay_color = hex_to_rgba(overlayColor)
@@ -128,8 +127,6 @@ def main():
                 pm.begin_drawing()
                 if showFOVCircle == True:
                     pm.draw_ring(centerX, centerY, 1, innerRadius, outerRadius, 0, 360, overlay_color)
-                if showTriggerBotRadius == True:
-                    pm.draw_ring(centerX, centerY, 1, triggerbot_actdistance, outerTriggerbotRadius, 0, 360, overlay_color)
                 pm.end_drawing()
 
             current_time = time.time()
@@ -192,6 +189,7 @@ def main():
                     # Sort the data frame by distance from center
                     targets = targets.sort_values("dist_from_center")
 
+
                 # get last person coordinate if exist
                 if last_mid_coord:
                     targets['last_mid_x'] = last_mid_coord[0]
@@ -218,8 +216,11 @@ def main():
                 # Calculate distance from the center of the screen
                 dist_from_center = np.sqrt(mouseMove[0]**2 + mouseMove[1]**2)
 
+                if dynamicTriggerbot == True:
+                    triggerbot_actdistance = targets.iloc[0].width
+
                 # Triggerbot
-                if triggerBot == True and abs(mouseMove[0]) <= 45 and abs(mouseMove[1]) <= 45 and dist_from_center <= triggerbot_actdistance:
+                if triggerBot == True and abs(mouseMove[0]) <= 25 and abs(mouseMove[1]) <= 25 and dist_from_center <= triggerbot_actdistance:
                     # Press the mouse button
                     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
                     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
@@ -283,10 +284,16 @@ def main():
                     # Apply offset to live overlay
                     fixedX, fixedY = midX + xOffset, midY + yOffset
 
+                    outerTriggerbotRadius = triggerbot_actdistance + 1
+
                     # Overlay
                     if realtimeOverlay == True:
-                        pm.draw_line(centerX, centerY, fixedX, fixedY, overlay_color, 1)
-                        pm.draw_rectangle_lines(fixedX - halfW, fixedY - halfH, round(targets["width"][i]), round(targets["height"][i]), overlay_color, 1)
+                        if showTracers == True:
+                            pm.draw_line(centerX, centerY, fixedX, fixedY, overlay_color, 1)
+                        if showBoxes == True:
+                            pm.draw_rectangle_lines(fixedX - halfW, fixedY - halfH, round(targets["width"][i]), round(targets["height"][i]), overlay_color, 1)
+                        if showTriggerBotRadius == True:
+                            pm.draw_ring(centerX, centerY, 1, triggerbot_actdistance, outerTriggerbotRadius, 0, 360, overlay_color)
 
             if realtimeOverlay == True and visuals == False:
 
@@ -300,8 +307,15 @@ def main():
                     
                     fixedX, fixedY = midX + xOffset, midY + yOffset
 
-                    pm.draw_line(centerX, centerY, fixedX, fixedY, overlay_color, 1)
-                    pm.draw_rectangle_lines(fixedX - halfW, fixedY - halfH, round(targets["width"][i]), round(targets["height"][i]), overlay_color, 1)
+                    outerTriggerbotRadius = triggerbot_actdistance + 1
+
+                    if showTriggerBotRadius == True:
+                        pm.draw_ring(centerX, centerY, 1, triggerbot_actdistance, outerTriggerbotRadius, 0, 360, overlay_color)
+                    if showTracers == True:
+                        pm.draw_line(centerX, centerY, fixedX, fixedY, overlay_color, 1)
+                    if showBoxes == True:
+                        pm.draw_rectangle_lines(fixedX - halfW, fixedY - halfH, round(targets["width"][i]), round(targets["height"][i]), overlay_color, 1)
+
 
 
             # Forced garbage cleanup every second

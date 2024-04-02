@@ -16,4 +16,3 @@ onnxruntime_directml
 bettercam
 pyserial
 customtkinter
-CTkColorPicker
