@@ -8,7 +8,7 @@ import pandas as pd
 from utils.general import (cv2, non_max_suppression, xyxy2xywh)
 from models.common import DetectMultiBackend
 import cupy as cp
-from config import dynamicTriggerbot, showTracers, showBoxes, overlayColor, showFOVCircle, screenShotHeight, screenShotWidth, triggerbot_actdistance, aaMovementAmp, aaTriggerBotKey, aaMovementAmpHipfire, realtimeOverlay, jitterValue, aaPauseKey, useMask, maskHeight, maskWidth, aaQuitKey, confidence, cpsDisplay, visuals, centerOfScreen, fovCircleSize, ArduinoLeonardo, arduinoPort, BodyPart, RandomBodyPart
+from config import dynamicTriggerbot, showTracers, showBoxes, overlayColor, showFOVCircle, screenShotHeight, screenShotWidth, aaMovementAmp, aaTriggerBotKey, aaMovementAmpHipfire, realtimeOverlay, jitterValue, aaPauseKey, useMask, maskHeight, maskWidth, aaQuitKey, confidence, cpsDisplay, visuals, centerOfScreen, fovCircleSize, ArduinoLeonardo, arduinoPort, BodyPart, RandomBodyPart
 import gameSelection
 import serial
 import sys
@@ -75,7 +75,7 @@ def hex_to_rgba(hex_code):
     return {'r': r, 'g': g, 'b': b, 'a': a}
 
 def main():
-    from config import triggerBot, showTriggerBotRadius
+    from config import triggerBot, showTriggerBotRadius, triggerbot_actdistance
 
     if triggerBot == False:
         disableTriggerBot = True
