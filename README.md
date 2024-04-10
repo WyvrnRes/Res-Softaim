@@ -1,11 +1,15 @@
 # Res-Softaim Features (Default Activation Key is Left-alt!)
-![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/afcfffd5-34f5-4772-be5e-85be0cf41fc8)
-![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/194acfe4-e53e-45c8-9681-dd367fe70773)
-![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/c419b051-58e1-4b1a-878b-10bd97a1b2ba)
-![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/ffb2e5a4-013f-4f7d-bfe0-4d4dd7dd0c45)
-![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/e91a943d-b5c6-4194-bef7-f0c45c27fe9f)
+![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/2b74b0bc-6c4f-4ced-91f1-ec371e412b6e)
+![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/af0ed15e-db17-43ea-8025-596ed22566cf)
+![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/fa66e164-81ca-4123-8dbd-44129eddb49b)
+![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/9f1bcd15-8ec6-46fb-9f1f-6448a0561b85)
+![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/05455293-b56b-4bc6-9d19-fd796de5782d)
+![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/3f252271-c821-4838-a11d-af19a00ef545)
 
 Demo Video: https://youtu.be/yk4MmO7PUzM
+
+
+
 
 Use Rootkit's Setup guide for initial Pre-Requisites
 ## 🧰 Requirements
