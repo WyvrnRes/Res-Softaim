@@ -8,7 +8,7 @@ import pandas as pd
 from utils.general import (cv2, non_max_suppression, xyxy2xywh)
 from models.common import DetectMultiBackend
 import cupy as cp
-from config import dynamicTriggerbot, showTracers, showBoxes, overlayColor, showFOVCircle, screenShotHeight, screenShotWidth, aaMovementAmp, aaTriggerBotKey, aaMovementAmpHipfire, realtimeOverlay, jitterValue, aaPauseKey, useMask, maskHeight, maskWidth, aaQuitKey, confidence, cpsDisplay, visuals, centerOfScreen, fovCircleSize, ArduinoLeonardo, arduinoPort, BodyPart, RandomBodyPart
+from config import showStatus, activationKey, toggleAimbot, showTracers, showBoxes, overlayColor, showFOVCircle, screenShotHeight, screenShotWidth, aaMovementAmp, aaTriggerBotKey, aaMovementAmpHipfire, realtimeOverlay, jitterValue, aaPauseKey, useMask, maskHeight, maskWidth, aaQuitKey, confidence, cpsDisplay, visuals, centerOfScreen, fovCircleSize, ArduinoLeonardo, arduinoPort, BodyPart, RandomBodyPart
 import gameSelection
 import serial
 import sys
@@ -31,6 +31,8 @@ if ArduinoLeonardo:
 
 def is_key_pressed(key):
     return win32api.GetAsyncKeyState(ord(key)) & 0x8000 != 0
+
+key_code = getattr(win32con, activationKey)
 
 def generate_jitter(scale=0.1):
     jitter_range = jitterValue
@@ -73,9 +75,13 @@ def hex_to_rgba(hex_code):
 
     # Create and return the dictionary
     return {'r': r, 'g': g, 'b': b, 'a': a}
+green = hex_to_rgba("#00FF00")
+red = hex_to_rgba("#FF0000")
 
 def main():
     from config import triggerBot, showTriggerBotRadius, triggerbot_actdistance
+
+    aimbot = False # Starting aimbot off by default
 
     if triggerBot == False:
         disableTriggerBot = True
@@ -127,6 +133,17 @@ def main():
                 pm.begin_drawing()
                 if showFOVCircle == True:
                     pm.draw_ring(centerX, centerY, 1, innerRadius, outerRadius, 0, 360, overlay_color)
+                if showStatus == True:
+                    if aimbot:
+                        softaim_overlay_color = green
+                    else:
+                        softaim_overlay_color = red
+                    if triggerBot:
+                        text_overlay_color = green
+                    else:
+                        text_overlay_color = red
+                    pm.draw_text(f"Softaim: {aimbot}", centerX - 40, centerY + 300, 10, softaim_overlay_color)
+                    pm.draw_text(f"TriggerBot: {triggerBot}", centerX - 40, centerY + 310, 10, text_overlay_color)
                 pm.end_drawing()
 
             current_time = time.time()
@@ -180,6 +197,13 @@ def main():
                 print(f"TriggerBot toggled: {triggerBot}")
                 time.sleep(0.25)
 
+            # aimbot toggle
+            if win32api.GetKeyState(key_code) < 0 and toggleAimbot == True:
+                aimbot = not aimbot
+                print(f"Aimbot toggled: {aimbot}")
+                time.sleep(0.25)
+
+
             # If there are people in the center bounding box
             if len(targets) > 0:
                 if (centerOfScreen):
@@ -216,37 +240,34 @@ def main():
                 # Calculate distance from the center of the screen
                 dist_from_center = np.sqrt(mouseMove[0]**2 + mouseMove[1]**2)
 
-                if dynamicTriggerbot == True:
-                    triggerbot_actdistance = targets.iloc[0].width
-
                 # Triggerbot
-                if triggerBot == True and abs(mouseMove[0]) <= 25 and abs(mouseMove[1]) <= 25 and dist_from_center <= triggerbot_actdistance:
+                if triggerBot == True and abs(mouseMove[0]) <= triggerbot_actdistance and abs(mouseMove[1]) <= triggerbot_actdistance:
                     # Press the mouse button
                     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
                     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
 
                 # Check if the target is within the FOV circle
                 if dist_from_center <= fovCircleSize:
-                
-                 if win32api.GetKeyState(win32con.VK_MENU) & 0x8000: # Change the key to whatever you want
-                    if ArduinoLeonardo:
-                         # Send mouse movement command to Arduino
-                        mouse_move_cmd = "{},{}\n".format(int(mouseMove[0] * aaMovementAmp), int(mouseMove[1] * aaMovementAmp))
-                        ser.write(mouse_move_cmd.encode('utf-8'))
-                        last_mid_coord = [xMid, yMid]
-                    else:
-                        # Move mouse
-                     if is_right_mouse_button_pressed():
-                        jitter_x, jitter_y = generate_jitter(scale=0.1)
-                        win32api.mouse_event(win32con.MOUSEEVENTF_MOVE,
-                        int((mouseMove[0] + jitter_x) * aaMovementAmp),
-                        int((mouseMove[1] + jitter_y) * aaMovementAmp), 0, 0)
-                     else:
-                        # If hipfire then hipfire modifier
-                        jitter_x, jitter_y = generate_jitter(scale=0.1)
-                        win32api.mouse_event(win32con.MOUSEEVENTF_MOVE,
-                        int((mouseMove[0] + jitter_x) * aaMovementAmpHipfire),
-                        int((mouseMove[1] + jitter_y) * aaMovementAmpHipfire), 0, 0)
+                 
+                    if aimbot == True or win32api.GetKeyState(key_code) < 0 and toggleAimbot == False: # or win32api.GetKeyState(win32con.VK_MENU) & 0x8000
+                        if ArduinoLeonardo:
+                            # Send mouse movement command to Arduino
+                            mouse_move_cmd = "{},{}\n".format(int(mouseMove[0] * aaMovementAmp), int(mouseMove[1] * aaMovementAmp))
+                            ser.write(mouse_move_cmd.encode('utf-8'))
+                            last_mid_coord = [xMid, yMid]
+                        else:
+                            # Move mouse
+                            if is_right_mouse_button_pressed():
+                                jitter_x, jitter_y = generate_jitter(scale=0.1)
+                                win32api.mouse_event(win32con.MOUSEEVENTF_MOVE,
+                                int((mouseMove[0] + jitter_x) * aaMovementAmp),
+                                int((mouseMove[1] + jitter_y) * aaMovementAmp), 0, 0)
+                            else:
+                                # If hipfire then hipfire modifier
+                                jitter_x, jitter_y = generate_jitter(scale=0.1)
+                                win32api.mouse_event(win32con.MOUSEEVENTF_MOVE,
+                                int((mouseMove[0] + jitter_x) * aaMovementAmpHipfire),
+                                int((mouseMove[1] + jitter_y) * aaMovementAmpHipfire), 0, 0)
                          
                     
 
