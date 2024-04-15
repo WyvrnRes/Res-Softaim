@@ -98,3 +98,5 @@ Follow these sparkly steps to get your TensorRT ready for action! 🛠️✨
    Note: You can pick a different YOLOv5 model size. TensorRT's power allows for larger models if desired!
 
 If you've followed these steps, you should be all set with TensorRT! ⚙️🚀
+
+Dont forget to select your model in the menu!
