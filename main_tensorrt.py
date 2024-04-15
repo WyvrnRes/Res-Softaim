@@ -22,7 +22,7 @@ body_part_offsets = {
     "Pelvis": -0.2
 }
 
-model_file = sys.argv[1] if len(sys.argv) > 1 else 'FortniteTaipei320.engine'
+model_file = sys.argv[1] if len(sys.argv) > 1 else 'FortniteTaipei.engine'
 
 # setup connection
 if ArduinoLeonardo:
