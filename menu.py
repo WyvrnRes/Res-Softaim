@@ -123,7 +123,6 @@ class App(customtkinter.CTk):
             visuals_value = visuals_switch.get() == 1
             realtime_overlay_value = realtime_overlay_switch.get() == 1
             center_of_screen_value = center_of_screen_switch.get() == 1
-            arduino_leonardo_value = arduino_leonardo_switch.get() == 1
             random_body_part_value = random_body_part_switch.get() == 1
             triggerBot_value = triggerBot_switch.get() == 1
             showTriggerBot_value = showTriggerBot_switch.get() == 1
@@ -137,7 +136,8 @@ class App(customtkinter.CTk):
             with open('config.py', 'w') as config_file:
                 config_file.write(f"screenShotHeight = {screen_shot_height_entry.get()}\n")
                 config_file.write(f"screenShotWidth = {screen_shot_width_entry.get()}\n")
-                config_file.write(f"jitterValue = {jitter_value_box.get()}\n")
+                config_file.write(f"jitterValueX = {jitterX_value_box.get()}\n")
+                config_file.write(f"jitterValueY = {jitterY_value_box.get()}\n")
                 config_file.write(f"useMask = {use_mask_value}\n")
                 config_file.write(f"maskWidth = {mask_width_entry.get()}\n")
                 config_file.write(f"maskHeight = {mask_height_entry.get()}\n")
@@ -155,8 +155,6 @@ class App(customtkinter.CTk):
                 config_file.write(f"realtimeOverlay = {realtime_overlay_value}\n")
                 config_file.write(f"centerOfScreen = {center_of_screen_value}\n")
                 config_file.write(f"onnxChoice = {int(onnx_choice_entry.get())}\n")
-                config_file.write(f"ArduinoLeonardo = {arduino_leonardo_value}\n")
-                config_file.write(f"arduinoPort = '{arduino_port_entry.get()}'\n")
                 config_file.write(f"selectedModel = '{selected_model}'\n") 
                 config_file.write(f"BodyPart = '{body_part_selector.get()}'\n")
                 config_file.write(f"RandomBodyPart = {random_body_part_value}\n")
@@ -271,9 +269,10 @@ class App(customtkinter.CTk):
         aa_movement_amp_entry = create_setting_widget(app.third_frame, "Softaim ADS Sensitivity", 2, 0, widget_type=customtkinter.CTkEntry)
         aa_movement_amp_hipfire_entry = create_setting_widget(app.third_frame, "Softaim Hipfire Sensitivity", 3, 0, widget_type=customtkinter.CTkEntry)
         confidence_entry = create_setting_widget(app.third_frame, "Aim Confidence", 4, 0)
-        jitter_value_box = create_setting_widget(app.third_frame, "Jitter Amount", 5, 0)
-        fov_circle_size_entry = create_setting_widget(app.third_frame, "FOV Circle Size", 6, 0)
-        body_part_selector = create_setting_widget(app.third_frame, "Body Part Selector", 7, 0, widget_type=customtkinter.CTkComboBox, values=["Head", "Neck", "Body", "Pelvis"])
+        jitterX_value_box = create_setting_widget(app.third_frame, "Jitter X", 5, 0)
+        jitterY_value_box = create_setting_widget(app.third_frame, "Jitter Y", 6, 0)
+        fov_circle_size_entry = create_setting_widget(app.third_frame, "FOV Circle Size", 7, 0)
+        body_part_selector = create_setting_widget(app.third_frame, "Body Part Selector", 8, 0, widget_type=customtkinter.CTkComboBox, values=["Head", "Neck", "Body", "Pelvis"])
         body_part_selector.set(config.BodyPart)
         auto_game_detection_switch = create_setting_widget(app.third_frame, "Automatic Game Detection", 1, 2, widget_type=customtkinter.CTkSwitch, text="")
         random_body_part_switch = create_setting_widget(app.third_frame, "Randomized Body Part", 2, 2, widget_type=customtkinter.CTkSwitch, text="")
@@ -312,9 +311,7 @@ class App(customtkinter.CTk):
         app.sixth_frame = customtkinter.CTkFrame(app, corner_radius=0, fg_color="transparent")
         app.sixth_frame.grid_columnconfigure(0, weight=1)
 
-        arduino_leonardo_switch = create_setting_widget(app.sixth_frame, "Use Arduino Leonardo", 1, 0, widget_type=customtkinter.CTkSwitch, text="")
-        arduino_port_entry = create_setting_widget(app.sixth_frame, "Arduino Port", 2, 0)
-        onnx_choice_entry = create_setting_widget(app.sixth_frame, "ONNX Choice (1-CPU, 2-AMD, 3-NVIDIA)", 3, 0)
+        onnx_choice_entry = create_setting_widget(app.sixth_frame, "ONNX Choice (1-CPU, 2-AMD, 3-NVIDIA)", 1, 0)
 
         set_initial_values(screen_shot_height_entry, config.screenShotHeight)
         set_initial_values(screen_shot_width_entry, config.screenShotWidth)
@@ -329,8 +326,8 @@ class App(customtkinter.CTk):
         set_initial_values(aa_trigger_bot_key_entry, config.aaTriggerBotKey)
         set_initial_values(aa_pause_key_entry, config.aaPauseKey)
         set_initial_values(onnx_choice_entry, config.onnxChoice)
-        set_initial_values(arduino_port_entry, config.arduinoPort)
-        set_initial_values(jitter_value_box, config.jitterValue)
+        set_initial_values(jitterX_value_box, config.jitterValueX)
+        set_initial_values(jitterY_value_box, config.jitterValueY)
         set_initial_values(triggerbot_actdistance_entry, config.triggerbot_actdistance)
         set_initial_values(overlayColor_entry, config.overlayColor)
 
@@ -341,7 +338,6 @@ class App(customtkinter.CTk):
         set_switch(cps_display_switch, config.cpsDisplay)
         set_switch(visuals_switch, config.visuals)
         set_switch(center_of_screen_switch, config.centerOfScreen)
-        set_switch(arduino_leonardo_switch, config.ArduinoLeonardo)
         set_switch(random_body_part_switch, config.RandomBodyPart) 
         set_switch(triggerBot_switch, config.triggerBot) 
         set_switch(realtime_overlay_switch, config.realtimeOverlay)
@@ -415,5 +411,12 @@ class App(customtkinter.CTk):
         app.select_frame_by_name("frame_6")
 
 if __name__ == "__main__":
-    app = App()
-    app.mainloop()
+    try:
+        app = App()
+        app.mainloop()
+    except Exception as e:
+        import traceback
+        traceback.print_exception(e)
+        print(str(e))
+        print("")
+        input()

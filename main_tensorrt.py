@@ -8,9 +8,8 @@ import pandas as pd
 from utils.general import (cv2, non_max_suppression, xyxy2xywh)
 from models.common import DetectMultiBackend
 import cupy as cp
-from config import showStatus, activationKey, toggleAimbot, showTracers, showBoxes, overlayColor, showFOVCircle, screenShotHeight, screenShotWidth, aaMovementAmp, aaTriggerBotKey, aaMovementAmpHipfire, realtimeOverlay, jitterValue, aaPauseKey, useMask, maskHeight, maskWidth, aaQuitKey, confidence, cpsDisplay, visuals, centerOfScreen, fovCircleSize, ArduinoLeonardo, arduinoPort, BodyPart, RandomBodyPart
+from config import showStatus, activationKey, toggleAimbot, showTracers, showBoxes, overlayColor, showFOVCircle, screenShotHeight, screenShotWidth, aaMovementAmp, aaTriggerBotKey, aaMovementAmpHipfire, realtimeOverlay, jitterValueX, jitterValueY, aaPauseKey, useMask, maskHeight, maskWidth, aaQuitKey, confidence, cpsDisplay, visuals, centerOfScreen, fovCircleSize, BodyPart, RandomBodyPart
 import gameSelection
-import serial
 import sys
 import random
 import pyMeow as pm
@@ -22,22 +21,16 @@ body_part_offsets = {
     "Pelvis": -0.2
 }
 
-model_file = sys.argv[1] if len(sys.argv) > 1 else 'FortniteTaipei.engine'
-
-# setup connection
-if ArduinoLeonardo:
-    ser = serial.Serial(arduinoPort, 9600, timeout=1)
-    ser.flush()
+model_file = sys.argv[1] if len(sys.argv) > 1 else 'FortniteTaipei320.engine'
 
 def is_key_pressed(key):
     return win32api.GetAsyncKeyState(ord(key)) & 0x8000 != 0
 
 key_code = getattr(win32con, activationKey)
 
-def generate_jitter(scale=0.1):
-    jitter_range = jitterValue
-    jitter_x = random.uniform(-jitter_range, jitter_range) * scale
-    jitter_y = random.uniform(-jitter_range, jitter_range) * scale
+def generate_jitter(scale=0.2):
+    jitter_x = random.uniform(-jitterValueX, jitterValueX) * scale
+    jitter_y = random.uniform(-jitterValueY, jitterValueY) * scale
     return jitter_x, jitter_y
 
 def is_right_mouse_button_pressed():
@@ -246,28 +239,26 @@ def main():
                     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
                     win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
 
+
                 # Check if the target is within the FOV circle
                 if dist_from_center <= fovCircleSize:
+
+                    jitter_x, jitter_y = generate_jitter(scale=0.1)
+                    win32api.mouse_event(win32con.MOUSEEVENTF_MOVE,
+                    int(jitter_x * aaMovementAmp),
+                    int(jitter_y * aaMovementAmp), 0, 0)
                  
-                    if aimbot == True or win32api.GetKeyState(key_code) < 0 and toggleAimbot == False: # or win32api.GetKeyState(win32con.VK_MENU) & 0x8000
-                        if ArduinoLeonardo:
-                            # Send mouse movement command to Arduino
-                            mouse_move_cmd = "{},{}\n".format(int(mouseMove[0] * aaMovementAmp), int(mouseMove[1] * aaMovementAmp))
-                            ser.write(mouse_move_cmd.encode('utf-8'))
-                            last_mid_coord = [xMid, yMid]
+                    if aimbot == True or win32api.GetKeyState(key_code) < 0 and toggleAimbot == False:
+                        # Move mouse
+                        if is_right_mouse_button_pressed():
+                            win32api.mouse_event(win32con.MOUSEEVENTF_MOVE,
+                            int(mouseMove[0]  * aaMovementAmp),
+                            int(mouseMove[1]  * aaMovementAmp), 0, 0)
                         else:
-                            # Move mouse
-                            if is_right_mouse_button_pressed():
-                                jitter_x, jitter_y = generate_jitter(scale=0.1)
-                                win32api.mouse_event(win32con.MOUSEEVENTF_MOVE,
-                                int((mouseMove[0] + jitter_x) * aaMovementAmp),
-                                int((mouseMove[1] + jitter_y) * aaMovementAmp), 0, 0)
-                            else:
-                                # If hipfire then hipfire modifier
-                                jitter_x, jitter_y = generate_jitter(scale=0.1)
-                                win32api.mouse_event(win32con.MOUSEEVENTF_MOVE,
-                                int((mouseMove[0] + jitter_x) * aaMovementAmpHipfire),
-                                int((mouseMove[1] + jitter_y) * aaMovementAmpHipfire), 0, 0)
+                            # If hipfire then hipfire modifier
+                            win32api.mouse_event(win32con.MOUSEEVENTF_MOVE,
+                            int(mouseMove[0]  * aaMovementAmpHipfire),
+                            int(mouseMove[1]  * aaMovementAmpHipfire), 0, 0)
                          
                     
 
@@ -366,3 +357,4 @@ if __name__ == "__main__":
         traceback.print_exception(e)
         print(str(e))
         print("")
+        input()
