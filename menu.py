@@ -125,7 +125,6 @@ class App(customtkinter.CTk):
             center_of_screen_value = center_of_screen_switch.get() == 1
             random_body_part_value = random_body_part_switch.get() == 1
             triggerBot_value = triggerBot_switch.get() == 1
-            showTriggerBot_value = showTriggerBot_switch.get() == 1
             showFOVCircle_value = showFOVCircle_switch.get() == 1
             showTracers_value = showTracers_switch.get() == 1
             showBoxes_value = showBoxes_switch.get() == 1
@@ -138,6 +137,7 @@ class App(customtkinter.CTk):
                 config_file.write(f"screenShotWidth = {screen_shot_width_entry.get()}\n")
                 config_file.write(f"jitterValueX = {jitterX_value_box.get()}\n")
                 config_file.write(f"jitterValueY = {jitterY_value_box.get()}\n")
+                config_file.write(f"jitterStrength = {jitterStrength_entry.get()}\n")
                 config_file.write(f"useMask = {use_mask_value}\n")
                 config_file.write(f"maskWidth = {mask_width_entry.get()}\n")
                 config_file.write(f"maskHeight = {mask_height_entry.get()}\n")
@@ -162,7 +162,6 @@ class App(customtkinter.CTk):
                 config_file.write(f"showBoxes = {showBoxes_value}\n")
                 config_file.write(f"triggerBot = {triggerBot_value}\n")
                 config_file.write(f"triggerbot_actdistance = {triggerbot_actdistance_entry.get()}\n")
-                config_file.write(f"showTriggerBotRadius = {showTriggerBot_value}\n")
                 config_file.write(f"showFOVCircle = {showFOVCircle_value}\n")
                 config_file.write(f"overlayColor = '{overlayColor_entry.get()}'\n")
                 config_file.write(f"toggleAimbot = {toggle_aimbot_value}\n")
@@ -269,11 +268,12 @@ class App(customtkinter.CTk):
         aa_movement_amp_entry = create_setting_widget(app.third_frame, "Softaim ADS Sensitivity", 2, 0, widget_type=customtkinter.CTkEntry)
         aa_movement_amp_hipfire_entry = create_setting_widget(app.third_frame, "Softaim Hipfire Sensitivity", 3, 0, widget_type=customtkinter.CTkEntry)
         confidence_entry = create_setting_widget(app.third_frame, "Aim Confidence", 4, 0)
-        jitterX_value_box = create_setting_widget(app.third_frame, "Jitter X", 5, 0)
-        jitterY_value_box = create_setting_widget(app.third_frame, "Jitter Y", 6, 0)
-        fov_circle_size_entry = create_setting_widget(app.third_frame, "FOV Circle Size", 7, 0)
-        body_part_selector = create_setting_widget(app.third_frame, "Body Part Selector", 8, 0, widget_type=customtkinter.CTkComboBox, values=["Head", "Neck", "Body", "Pelvis"])
+        fov_circle_size_entry = create_setting_widget(app.third_frame, "FOV Circle Size", 5, 0)
+        body_part_selector = create_setting_widget(app.third_frame, "Body Part Selector", 6, 0, widget_type=customtkinter.CTkComboBox, values=["Head", "Neck", "Body", "Pelvis"])
         body_part_selector.set(config.BodyPart)
+        jitterStrength_entry = create_setting_widget(app.third_frame, "Jitter Strength", 7, 0)
+        jitterX_value_box = create_setting_widget(app.third_frame, "Jitter X", 8, 0)
+        jitterY_value_box = create_setting_widget(app.third_frame, "Jitter Y", 9, 0)
         auto_game_detection_switch = create_setting_widget(app.third_frame, "Automatic Game Detection", 1, 2, widget_type=customtkinter.CTkSwitch, text="")
         random_body_part_switch = create_setting_widget(app.third_frame, "Randomized Body Part", 2, 2, widget_type=customtkinter.CTkSwitch, text="")
         triggerBot_switch = create_setting_widget(app.third_frame, "Trigger Bot", 3, 2, widget_type=customtkinter.CTkSwitch, text="")
@@ -287,10 +287,9 @@ class App(customtkinter.CTk):
         overlayColor_entry = create_setting_widget(app.fourth_frame, "Choose Overlay Color (HEX Format)", 1, 0, widget_type=customtkinter.CTkEntry)
         realtime_overlay_switch = create_setting_widget(app.fourth_frame, "Realtime Overlay", 2, 0, widget_type=customtkinter.CTkSwitch, text="")
         showFOVCircle_switch = create_setting_widget(app.fourth_frame, "Fov Circle", 3, 0, widget_type=customtkinter.CTkSwitch, text="")
-        showTriggerBot_switch = create_setting_widget(app.fourth_frame, "Trigger Bot Fov Circle", 4, 0, widget_type=customtkinter.CTkSwitch, text="")
-        showTracers_switch = create_setting_widget(app.fourth_frame, "Tracers", 5, 0, widget_type=customtkinter.CTkSwitch, text="")
-        showBoxes_switch = create_setting_widget(app.fourth_frame, "Boxes", 6, 0, widget_type=customtkinter.CTkSwitch, text="")
-        showStatus_switch = create_setting_widget(app.fourth_frame, "On/Off Status", 7, 0, widget_type=customtkinter.CTkSwitch, text="")
+        showTracers_switch = create_setting_widget(app.fourth_frame, "Tracers", 4, 0, widget_type=customtkinter.CTkSwitch, text="")
+        showBoxes_switch = create_setting_widget(app.fourth_frame, "Boxes", 5, 0, widget_type=customtkinter.CTkSwitch, text="")
+        showStatus_switch = create_setting_widget(app.fourth_frame, "On/Off Status", 6, 0, widget_type=customtkinter.CTkSwitch, text="")
         
 
         # create advanced frame
@@ -330,6 +329,7 @@ class App(customtkinter.CTk):
         set_initial_values(jitterY_value_box, config.jitterValueY)
         set_initial_values(triggerbot_actdistance_entry, config.triggerbot_actdistance)
         set_initial_values(overlayColor_entry, config.overlayColor)
+        set_initial_values(jitterStrength_entry, config.jitterStrength)
 
 
 
@@ -341,7 +341,6 @@ class App(customtkinter.CTk):
         set_switch(random_body_part_switch, config.RandomBodyPart) 
         set_switch(triggerBot_switch, config.triggerBot) 
         set_switch(realtime_overlay_switch, config.realtimeOverlay)
-        set_switch(showTriggerBot_switch, config.showTriggerBotRadius)
         set_switch(showFOVCircle_switch, config.showFOVCircle)
         set_switch(showTracers_switch, config.showTracers)
         set_switch(showBoxes_switch, config.showBoxes)
