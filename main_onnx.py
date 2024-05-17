@@ -1,17 +1,15 @@
-import torch
+import onnxruntime as ort
 import numpy as np
-import cv2
 import gc
+import cv2
 import time
 import win32api
 import win32con
 import pandas as pd
 from utils.general import (cv2, non_max_suppression, xyxy2xywh)
-from models.common import DetectMultiBackend
-import cupy as cp
-from config import jitterStrength, showStatus, activationKey, toggleAimbot, showTracers, showBoxes, overlayColor, showFOVCircle, screenShotHeight, screenShotWidth, aaMovementAmp, aaTriggerBotKey, aaMovementAmpHipfire, realtimeOverlay, jitterValueX, jitterValueY, aaPauseKey, useMask, maskHeight, maskWidth, aaQuitKey, confidence, cpsDisplay, visuals, centerOfScreen, fovCircleSize, BodyPart, RandomBodyPart
+import torch
+from config import selectedModel, onnxChoice, jitterStrength, showStatus, activationKey, toggleAimbot, showTracers, showBoxes, overlayColor, showFOVCircle, screenShotHeight, screenShotWidth, aaMovementAmp, aaTriggerBotKey, aaMovementAmpHipfire, realtimeOverlay, jitterValueX, jitterValueY, aaPauseKey, useMask, maskHeight, maskWidth, aaQuitKey, confidence, cpsDisplay, visuals, centerOfScreen, fovCircleSize, BodyPart, RandomBodyPart
 import gameSelection
-import sys
 import random
 import pyMeow as pm
 
@@ -21,9 +19,6 @@ body_part_offsets = {
     "Body": 0.2,
     "Pelvis": -0.2
 }
-
-model_file = sys.argv[1] if len(sys.argv) > 1 else 'FortniteTaipei.engine'
-
 def is_key_pressed(key):
     return win32api.GetAsyncKeyState(ord(key)) & 0x8000 != 0
 
@@ -95,8 +90,20 @@ def main():
     count = 0
     sTime = time.time()
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = DetectMultiBackend(model_file, device=device, dnn=False, data='', fp16=True)
+    # Choosing the correct ONNX Provider based on config.py
+    onnxProvider = ""
+    if onnxChoice == 1:
+        onnxProvider = "CPUExecutionProvider"
+    elif onnxChoice == 2:
+        onnxProvider = "DmlExecutionProvider"
+    elif onnxChoice == 3:
+        import cupy as cp
+        onnxProvider = "CUDAExecutionProvider"
+
+    so = ort.SessionOptions()
+    so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+    ort_sess = ort.InferenceSession(selectedModel, sess_options=so, providers=[
+                                    onnxProvider])
 
     # Used for colors drawn on bounding boxes
     COLORS = np.random.uniform(0, 255, size=(1500, 3))
@@ -150,30 +157,56 @@ def main():
              time.sleep(0.1)  # Sleep to reduce CPU usage when paused
              continue
 
-            npImg = cp.array([camera.get_latest_frame()])
-            if npImg.shape[3] == 4:
-                npImg = npImg[:, :, :, :3]
+            # Getting Frame
+            npImg = np.array(camera.get_latest_frame())
 
             if useMask:
-                npImg[:, -maskHeight:, :maskWidth, :] = 0
+                npImg[-maskHeight:, -maskWidth:, :] = 0
 
-            im = npImg / 255
-            im = im.astype(cp.half)
+            # If Nvidia, do this
+            if onnxChoice == 3:
+                # Normalizing Data
+                im = torch.from_numpy(npImg).to('cuda')
+                if im.shape[2] == 4:
+                    # If the image has an alpha channel, remove it
+                    im = im[:, :, :3,]
 
-            im = cp.moveaxis(im, 3, 1)
-            im = torch.from_numpy(cp.asnumpy(im)).to('cuda')
+                im = torch.movedim(im, 2, 0)
+                im = im.half()
+                im /= 255
+                if len(im.shape) == 3:
+                    im = im[None]
+            # If AMD or CPU, do this
+            else:
+                # Normalizing Data
+                im = np.array([npImg])
+                if im.shape[3] == 4:
+                    # If the image has an alpha channel, remove it
+                    im = im[:, :, :, :3]
+                im = im / 255
+                im = im.astype(np.half)
+                im = np.moveaxis(im, 3, 1)
 
-            # Detecting all the objects
-            results = model(im)
+            # If Nvidia, do this
+            if onnxChoice == 3:
+                outputs = ort_sess.run(None, {'images': cp.asnumpy(im)})
+            # If AMD or CPU, do this
+            else:
+                outputs = ort_sess.run(None, {'images': np.array(im)})
+
+            im = torch.from_numpy(outputs[0]).to('cpu')
 
             pred = non_max_suppression(
-                results, confidence, confidence, 0, False, max_det=10)
+                im, confidence, confidence, 0, False, max_det=10)
 
             targets = []
             for i, det in enumerate(pred):
                 s = ""
                 gn = torch.tensor(im.shape)[[0, 0, 0, 0]]
                 if len(det):
+                    for c in det[:, -1].unique():
+                        n = (det[:, -1] == c).sum()  # detections per class
+                        s += f"{n} {int(c)}, "  # add to string
 
                     for *xyxy, conf, cls in reversed(det):
                         targets.append((xyxy2xywh(torch.tensor(xyxy).view(
@@ -321,6 +354,7 @@ def main():
                         pm.draw_rectangle_lines(fixedX - halfW, fixedY - halfH, round(targets["width"][i]), round(targets["height"][i]), overlay_color, 1)
 
 
+
             # Forced garbage cleanup every second
             count += 1
             if (time.time() - sTime) > 1:
@@ -335,6 +369,8 @@ def main():
             # See visually what the Aimbot sees
             if visuals:
                 cv2.imshow('Live Feed', npImg)
+                if (cv2.waitKey(1) & 0xFF) == ord('q'):
+                    exit()
 
     camera.stop()
 

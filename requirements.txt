@@ -13,6 +13,8 @@ ipython
 psutil
 dxcam
 onnxruntime_directml
+onnxruntime-gpu
+cupy-cuda11x
 bettercam
 pyserial
 customtkinter

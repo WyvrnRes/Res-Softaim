@@ -7,7 +7,7 @@ from pyMeow import get_display_resolution
 displayResolution = get_display_resolution()
 
 def get_engine_files():
-    return [f for f in os.listdir() if f.endswith('.engine')]
+    return [f for f in os.listdir() if f.endswith('.engine') or f.endswith('.onnx')]
 
 def create_model_selector(parent, row, column, engine_files, default_model):
     customtkinter.CTkLabel(parent, text="Select Model").grid(row=row, column=column, pady=(10, 0), padx=(10, 0), sticky="w")
@@ -107,10 +107,17 @@ class App(customtkinter.CTk):
         import config
 
         def run():
-            print("Started Running 'main_tensorrt.py'")
             selected_model = model_selector.get()
-            subprocess.Popen(['python', 'main_tensorrt.py', selected_model])
-            exit()
+            if int(onnx_choice_entry.get()) == 3 and selected_model.endswith('.engine'):
+                print("Cuda Detected! Started Running 'main_tensorrt.py' with Acceleration.")
+                subprocess.Popen(['python', 'main_tensorrt.py', selected_model])
+                exit()
+            elif selected_model.endswith('.onnx'):
+                print("Started Running 'main_onnx.py' without Acceleration.")
+                subprocess.Popen(['python','main_onnx.py', selected_model])
+                exit()
+            else:
+                print("Please select a valid ONNX file.")
 
 
         # self explanatory save settings
@@ -167,6 +174,7 @@ class App(customtkinter.CTk):
                 config_file.write(f"toggleAimbot = {toggle_aimbot_value}\n")
                 config_file.write(f"activationKey = '{selected_activation_key}'\n")
                 config_file.write(f"showStatus = {showStatus_value}\n")
+
                 print("Saved Settings")
 
         def create_setting_widget(parent, label, row, column, widget_type=customtkinter.CTkEntry, **options):
@@ -196,7 +204,7 @@ class App(customtkinter.CTk):
         app.mask_image = customtkinter.CTkImage(dark_image=Image.open(os.path.join(image_path, "mask.png")), size=(20, 20))
         app.gameaim_image = customtkinter.CTkImage(dark_image=Image.open(os.path.join(image_path, "gameaim.png")), size=(20, 20))
         app.advanced_image = customtkinter.CTkImage(dark_image=Image.open(os.path.join(image_path, "advanced.png")), size=(20, 20))
-        app.hardware_image = customtkinter.CTkImage(dark_image=Image.open(os.path.join(image_path, "hardware.png")), size=(20, 20))
+        app.configuration_image = customtkinter.CTkImage(dark_image=Image.open(os.path.join(image_path, "configuration.png")), size=(20, 20))
         app.overlay_image = customtkinter.CTkImage(dark_image=Image.open(os.path.join(image_path, "overlay.png")), size=(20, 20))
 
         # create navigation frame
@@ -238,9 +246,9 @@ class App(customtkinter.CTk):
                                                       image=app.advanced_image, anchor="w", command=app.frame_5_button_event)
         app.frame_5_button.grid(row=5, column=0, sticky="ew")
 
-        app.frame_6_button = customtkinter.CTkButton(app.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Hardware",
+        app.frame_6_button = customtkinter.CTkButton(app.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Configuration",
                                                       fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
-                                                      image=app.hardware_image, anchor="w", command=app.frame_6_button_event)
+                                                      image=app.configuration_image, anchor="w", command=app.frame_6_button_event)
         app.frame_6_button.grid(row=6, column=0, sticky="ew")
 
 
@@ -299,18 +307,18 @@ class App(customtkinter.CTk):
         cps_display_switch = create_setting_widget(app.fifth_frame, "Display CPS", 1, 0, widget_type=customtkinter.CTkSwitch, text="")
         visuals_switch = create_setting_widget(app.fifth_frame, "Enable Softaim View", 2, 0, widget_type=customtkinter.CTkSwitch, text="")
         toggle_aimbot_switch = create_setting_widget(app.fifth_frame, "Toggle Aimbot", 3, 0, widget_type=customtkinter.CTkSwitch, text="")
-        activationKey_entry1 = create_keybind_selector(app.fifth_frame, 4, 0, keys, config.activationKey)
-        aa_quit_key_entry = create_setting_widget(app.fifth_frame, "Softaim Quit Key", 5, 0)
-        aa_pause_key_entry = create_setting_widget(app.fifth_frame, "Softaim Pause Key", 6, 0)
-        aa_trigger_bot_key_entry = create_setting_widget(app.fifth_frame, "Trigger Bot Key", 7, 0)
         engine_files = get_engine_files()
-        model_selector = create_model_selector(app.fifth_frame, 8, 0, engine_files, config.selectedModel)
+        model_selector = create_model_selector(app.fifth_frame, 4, 0, engine_files, config.selectedModel)
 
-        # create hardware frame
+        # create configuration frame
         app.sixth_frame = customtkinter.CTkFrame(app, corner_radius=0, fg_color="transparent")
         app.sixth_frame.grid_columnconfigure(0, weight=1)
 
         onnx_choice_entry = create_setting_widget(app.sixth_frame, "ONNX Choice (1-CPU, 2-AMD, 3-NVIDIA)", 1, 0)
+        activationKey_entry1 = create_keybind_selector(app.sixth_frame, 3, 0, keys, config.activationKey)
+        aa_quit_key_entry = create_setting_widget(app.sixth_frame, "Softaim Quit Key", 4, 0)
+        aa_pause_key_entry = create_setting_widget(app.sixth_frame, "Softaim Pause Key", 5, 0)
+        aa_trigger_bot_key_entry = create_setting_widget(app.sixth_frame, "Trigger Bot Key", 6, 0)
 
         set_initial_values(screen_shot_height_entry, config.screenShotHeight)
         set_initial_values(screen_shot_width_entry, config.screenShotWidth)
@@ -348,7 +356,7 @@ class App(customtkinter.CTk):
         set_switch(showStatus_switch, config.showStatus)
 
         # select default frame
-        app.select_frame_by_name("frame_3")
+        app.select_frame_by_name("screen")
 
     def select_frame_by_name(app, name):
         # set button color for selected button
