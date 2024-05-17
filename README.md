@@ -1,10 +1,10 @@
 # Res-Softaim Features (Default Activation Key is Left-alt!)
-![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/2b74b0bc-6c4f-4ced-91f1-ec371e412b6e)
-![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/af0ed15e-db17-43ea-8025-596ed22566cf)
-![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/fa66e164-81ca-4123-8dbd-44129eddb49b)
-![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/9f1bcd15-8ec6-46fb-9f1f-6448a0561b85)
-![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/05455293-b56b-4bc6-9d19-fd796de5782d)
-![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/3f252271-c821-4838-a11d-af19a00ef545)
+![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/2145be59-03b7-471e-9d4c-f5297ac13696)
+![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/4819da77-2a3c-4557-9508-e92b5cd34edb)
+![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/47586852-39e1-4d93-9575-0f3f072952f1)
+![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/df0db48d-fba0-437e-9c37-229337c16f0c)
+![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/987cb435-0b70-4737-b7fd-2e612f039707)
+![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/9db913e7-8fd1-4fb8-abe6-20b25e1ae7ae)
 
 Demo Video: https://youtu.be/yk4MmO7PUzM
   
