@@ -7,10 +7,6 @@
 ![image](https://github.com/justaseal82/Res-Softaim/assets/62959173/9db913e7-8fd1-4fb8-abe6-20b25e1ae7ae)
 
 Demo Video: https://youtu.be/yk4MmO7PUzM
-  
-Support Discord Server: https://discord.gg/kE96qnPQ
-
-FAQ:  https://docs.google.com/document/d/10ynJpI5p5WPCT4S8wy8EEzdGYouEbFzassCcLPTuxi8/edit?usp=sharing
 
 
 
