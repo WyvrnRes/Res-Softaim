@@ -18,7 +18,7 @@ def create_model_selector(parent, row, column, engine_files, default_model):
 
 def create_keybind_selector(parent, row, column, keys, activationKey):
     customtkinter.CTkLabel(parent, text="Select Activation Key").grid(row=row, column=column, pady=(10, 0), padx=(10, 0), sticky="w")
-    keybind_selector = customtkinter.CTkComboBox(parent, values=keys)
+    keybind_selector = customtkinter.CTkComboBox(parent, values=keys or CKEYS)
     keybind_selector.set(activationKey)
     keybind_selector.grid(row=row, column=column + 1, pady=(10, 0), padx=(10, 10), sticky="w")
     return keybind_selector
@@ -99,6 +99,21 @@ keys=[
     "VK_F12",
     "VK_NUMLOCK",
     "VK_SCROLL",
+]
+
+CKEYS = [
+    "BTN_SELECT",
+    "BTN_START",
+    "BTN_WEST",
+    "BTN_NORTH",
+    "BTN_EAST",
+    "BTN_SOUTH",
+    "BTN_THUMBR",
+    "BTN_THUMBL",
+    "BTN_TR",
+    "BTN_TL",
+    "ABS_Z",
+    "ABS_RZ",
 ]
 
 class App(customtkinter.CTk):
